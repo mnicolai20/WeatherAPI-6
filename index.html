@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+
+    <title>Weather API</title>
+  </head>
+  <body>
+        <!-- SearchBar area -->
+                <div class="searchArea">
+                  <div>
+                    <input type="text" class="searchBar citySearch" placeholder="City Name">              
+                        <button class="searchBtn">Search</button>
+                       <!-- Where new buttons will be stored when a city is searched -->
+                        <div class="history"></div>
+                  </div>
+               </div>
+
+            <!-- container to display searched city information -->
+            <div class="containerTwo">
+              <!-- row and col to display city name -->
+              <div class="row" id="localCity">
+                <div class="col-sm-9 currentCity"></div>
+              </div>
+              <!-- row and col to display city degrees -->
+              <div class="row" id="cityDegrees">
+                  <div class="col-sm-9 currentDegrees"></div>
+                </div>
+                <!-- row and col to display city humidity -->
+                <div class="row" id="cityHumid">
+                  <div class="col-sm-9 currentHumid"></div>
+              </div>
+              <!-- row and col to display city wind speed -->
+              <div class="row" id=cityWind>
+                <div class="col-sm-9 currentWind"></div>
+              </div>
+            </div>
+            <!-- container to display 5-day forecast -->
+            <div class="containerThree">
+              <div class="row">
+                <div class="col-sm-2 forecastTemp"></div>
+                <div class="col-sm-2 forecastHumid"></div>
+              </div>
+            </div>
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript"></script>
+    <script>
+      // click function for search button
+        $(".searchBtn").on("click", function(event){
+
+          // preventing default functions of search button
+          event.preventDefault();
+
+          // variable for information entered into city name input bar
+          var cityNameVal = $(".citySearch").val();          
+
+          // building url for the current weather
+          var queryURL = "https://cors-anywhere.herokuapp.com/api.openweathermap.org/data/2.5/weather?q=" + cityNameVal + "&appid=3abb512204615476ee115015275d42c0"
+          
+          // building url for 5-day forecast
+          var secondURL = "https://cors-anywhere.herokuapp.com/api.openweathermap.org/data/2.5/forecast?q=" + cityNameVal + "&appid=3abb512204615476ee115015275d42c0"
+          
+        //  ajax function to pull specific data from current weather and append to the appropriate div
+          function getData(){
+            $.ajax({
+              url: queryURL,
+              method: "GET"
+            }).then(function(response){
+             
+              // pulling city name
+              $(".currentCity").text(JSON.stringify(response.name));
+             
+              // pulling current temperature
+              $(".currentDegrees").text(JSON.stringify("Degrees: " + response.main.temp));
+             
+              // pulling current humidity
+              $(".currentHumid").text(JSON.stringify("Humidity: " + response.main.humidity));
+
+              // pulling current wind speed
+              $(".currentWind").text(JSON.stringify("Wind Speed: " + response.wind.speed));
+            })};
+
+          //  ajax function to pull specific data from 5-day forecast
+            function getDaily(){
+              $.ajax({
+                url: secondURL,
+                method: "GET"
+              }).then(function(data){
+
+                console.log(data.list[0].main)
+                
+                // for loop to iterate through 5 days of future temperature
+                for (let i = 0; i < data.list[4]; i++) {
+
+                  // creating a div for the temperature of each future day
+                  var newDiv = $("<div>");
+
+                    newDiv.addClass("col-sm-2");
+
+                    newDiv.text(JSON.stringify("Degrees: " + data.list[i].main.temp))
+
+                    // appending the div to the appropriate container
+                    $(".containerThree").append(newDiv);
+                  
+                }
+
+                // for loop to iterate through 5 days of future humidity
+                for (let i = 0; i < data.list[5]; i++) {
+
+                  // creating a div for the humidity of each future day
+                  var newDiv = $("<div>");
+
+                  newDiv.addClass("col-sm-2");
+
+                  newDiv.text(JSON.stringify("Degrees: " + data.list[i].main.humidity))
+
+                  // appending the new div to the appropriate container
+                  $(".containerThree").append(newDiv);
+                                                }
+                                      });
+              }
+
+            //  setting the searched city name to locale storage
+             var cityNameVal = $(".citySearch").val(); 
+              localStorage.setItem("City", JSON.stringify(cityNameVal))
+              
+              // adding a new button to the page after a city is searched
+              function renderButton(){
+                for (let i = 0; i < localStorage.length; i++) {
+                  var cityButton = $("<button>");
+                    cityButton.addClass("searched");
+                    cityButton.attr("data-name", localStorage[i]);
+                    cityButton.text(localStorage[i]);
+                    $(".history").append(cityButton);
+                  
+                }
+              }
+
+            // calling all functions to run when search button is clicked
+            getData()
+            getDaily()
+            renderButton()
+        });
+    </script>
+  </body>
+</html>
